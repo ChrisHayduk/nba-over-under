@@ -42,8 +42,12 @@ export function ParticipantCard({ entry, anchorId }: { entry: LeaderboardEntry; 
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <StatBlock label="On track" value={`${entry.onTrack}/${entry.total}`} accent="text-emerald-300" />
-        <StatBlock label="Too close" value={entry.tossUps} accent="text-amber-200" />
-        <StatBlock label="Pending" value={entry.pending} accent="text-slate-200" />
+        <StatBlock
+          label="Avg margin"
+          value={`${entry.avgMargin >= 0 ? "+" : ""}${entry.avgMargin.toFixed(2)} wins`}
+          accent="text-sky-200"
+        />
+        <StatBlock label="Picks logged" value={entry.total} accent="text-white" />
       </div>
 
       {entry.missingFile ? (

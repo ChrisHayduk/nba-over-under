@@ -28,8 +28,6 @@ export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
             <th className="px-4 py-3 font-medium">Rank</th>
             <th className="px-4 py-3 font-medium">Player</th>
             <th className="px-4 py-3 font-medium">On Track</th>
-            <th className="px-4 py-3 font-medium">Toss-Ups</th>
-            <th className="px-4 py-3 font-medium">Pending</th>
             <th className="px-4 py-3 font-medium">Avg Margin</th>
             <th className="px-4 py-3 font-medium">Payout</th>
           </tr>
@@ -72,8 +70,6 @@ export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
                     />
                   </div>
                 </td>
-                <td className="px-4 py-4 align-top text-center text-amber-200">{entry.tossUps}</td>
-                <td className="px-4 py-4 align-top text-center text-slate-300">{entry.pending}</td>
                 <td className="px-4 py-4 align-top">
                   <p className="font-semibold text-emerald-200">
                     {entry.avgMargin >= 0 ? "+" : ""}

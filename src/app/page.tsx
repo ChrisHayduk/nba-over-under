@@ -23,10 +23,10 @@ export default async function Page() {
           <p className="text-xs uppercase tracking-[0.4em] text-white/60">
             Season {seasonLabel(snapshot.seasonEndYear)}
           </p>
-          <h1 className="mt-3 text-4xl font-semibold text-white">Crew O/U War Room</h1>
+          <h1 className="mt-3 text-4xl font-semibold text-white">NBA O/U Leaderboard</h1>
           <p className="mt-4 max-w-3xl text-base text-white/70">
             Live standings that blend everyone&apos;s Fanduel numbers with ESPN&apos;s latest records so you know which win totals
-            are pacing to cash and where the sweat still lives.
+            are pacing to cash.
           </p>
           <div className="mt-6 flex flex-wrap gap-4 text-sm text-white/70">
             <span className="rounded-full border border-white/20 px-3 py-1">
@@ -62,6 +62,9 @@ export default async function Page() {
           </div>
         </div>
         <LeaderboardTable entries={snapshot.leaderboard} />
+        <p className="text-xs text-white/40">
+          Avg margin = average projected cushion per pick (projection minus FanDuel line, aligned to each player&apos;s over/under choice).
+        </p>
       </section>
 
       <section className="space-y-4">

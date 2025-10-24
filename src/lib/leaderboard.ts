@@ -13,7 +13,7 @@ export type ProjectedPick = HardcodedPick & {
   projectedWins?: number;
   projectedResult: "over" | "under" | "push" | "unknown";
   delta?: number;
-  status: "hit" | "miss" | "toss-up" | "pending";
+  status: "hit" | "miss" | "unknown";
   teamRecord?: TeamRecord;
 };
 
@@ -23,8 +23,6 @@ export type LeaderboardEntry = {
   picks: ProjectedPick[];
   total: number;
   onTrack: number;
-  tossUps: number;
-  pending: number;
   avgMargin: number;
   missingFile: boolean;
   payout: number;
@@ -56,7 +54,7 @@ const projectPick = (
       ...pick,
       overUnder: line?.overUnder,
       projectedResult: "unknown",
-      status: "pending"
+      status: "unknown"
     };
   }
 
@@ -72,14 +70,8 @@ const projectPick = (
     projectedResult = delta > 0 ? "over" : "under";
   }
 
-  let status: "hit" | "miss" | "toss-up";
-  if (projectedResult === "push") {
-    status = "toss-up";
-  } else if (projectedResult === pick.pick) {
-    status = "hit";
-  } else {
-    status = "miss";
-  }
+  const status: "hit" | "miss" | "unknown" =
+    projectedResult === "push" ? "unknown" : projectedResult === pick.pick ? "hit" : "miss";
 
   return {
     ...pick,
@@ -103,8 +95,6 @@ const enrichParticipant = (
 
   const total = projected.length;
   const onTrack = projected.filter((pick) => pick.status === "hit").length;
-  const tossUps = projected.filter((pick) => pick.status === "toss-up").length;
-  const pending = projected.filter((pick) => pick.status === "pending").length;
   const marginSamples = projected
     .map((pick) => {
       if (typeof pick.delta !== "number") return null;
@@ -125,8 +115,6 @@ const enrichParticipant = (
     picks: projected,
     total,
     onTrack,
-    tossUps,
-    pending,
     avgMargin,
     missingFile: !participant.workbook,
     payout: 0,
@@ -150,7 +138,6 @@ export const getLeagueSnapshot = cache(async (): Promise<LeagueSnapshot> => {
   const sorted = leaderboard
     .sort((a, b) => {
       if (b.onTrack !== a.onTrack) return b.onTrack - a.onTrack;
-      if (b.tossUps !== a.tossUps) return a.tossUps - b.tossUps;
       if (b.avgMargin !== a.avgMargin) return b.avgMargin - a.avgMargin;
       return a.name.localeCompare(b.name);
     })
