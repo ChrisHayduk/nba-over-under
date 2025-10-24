@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 12 12 26;
+  --foreground: 248 250 252;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.18), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.15), transparent 35%),
+    rgb(var(--background));
+  color: rgb(var(--foreground));
+}
+
+* {
+  box-sizing: border-box;
+}

@@ -1,0 +1,30 @@
+{
+  "name": "nba_over_under",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Friends-only NBA over/under tracker with live projections.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^16.0.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.9.3"
+  }
+}
