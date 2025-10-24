@@ -1,7 +1,6 @@
 import { getLeagueSnapshot } from "@/lib/leaderboard";
 import { LeaderboardTable } from "@/components/leaderboard-table";
-import { ParticipantCard } from "@/components/participant-card";
-import { slugify } from "@/lib/utils";
+import { PickTracker } from "@/components/pick-tracker";
 
 const formatTimestamp = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
@@ -107,11 +106,7 @@ export default async function Page() {
           <h2 className="text-2xl font-semibold text-white">Pick tracker</h2>
           <p className="text-sm text-white/60">Every sheet parsed straight from Excel, updated automatically on deploy.</p>
         </div>
-        <div className="space-y-6">
-          {snapshot.leaderboard.map((entry) => (
-            <ParticipantCard key={entry.name} entry={entry} anchorId={slugify(entry.name)} />
-          ))}
-        </div>
+        <PickTracker entries={snapshot.leaderboard} />
       </section>
     </main>
   );
