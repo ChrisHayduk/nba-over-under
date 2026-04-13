@@ -59,7 +59,10 @@ const projectPick = (
   }
 
   const overUnder = line.overUnder;
-  const projectedWins = Math.floor(record.winPct * 82);
+  const gamesPlayed = record.wins + record.losses;
+  const projectedWins = gamesPlayed >= 82
+    ? record.wins
+    : Math.round(record.winPct * 82);
   const delta = projectedWins - overUnder;
   const magnitude = Math.abs(delta);
 
