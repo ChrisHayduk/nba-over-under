@@ -7,7 +7,7 @@ import { TeamLogo } from "@/components/team-logo";
 import { Notice } from "@/components/ui";
 import type { Conference, Team } from "@/data/teams";
 import type { Picks, Side } from "@/lib/seasons";
-import { cn } from "@/lib/utils";
+import { cn, formatEastern } from "@/lib/utils";
 
 type PickTeam = Team & { line: number; lastWins: number | null };
 
@@ -16,6 +16,8 @@ type Props = {
   lockLabel: string;
   /** localStorage key for unsaved picks. */
   draftKey: string;
+  /** Prefilled from the homepage's Edit links. */
+  initialName: string;
   teams: PickTeam[];
 };
 
@@ -24,6 +26,9 @@ type Step = "who" | "pick" | "done";
 const CONFERENCES: Conference[] = ["East", "West"];
 const PIN_PATTERN = /^\d{4,8}$/;
 const draftName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, " ");
+const firstName = (name: string) => name.trim().split(" ")[0];
+const savedLabel = (iso: string) =>
+  formatEastern(iso, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 // Unsaved picks survive a refresh. Storage can be unavailable (private mode), so failures are ignored.
 function readDraft(key: string, name: string): Partial<Picks> {
@@ -44,18 +49,22 @@ function writeDraft(key: string, name: string, picks: Partial<Picks> | null) {
   }
 }
 
-export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
+export function PickForm({ seasonLabel, lockLabel, draftKey, initialName, teams }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("who");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
   const [pin, setPin] = useState("");
   const [picks, setPicks] = useState<Partial<Picks>>({});
-  const [returning, setReturning] = useState(false);
+  /** What's on the server; null until this person has saved once. */
+  const [saved, setSaved] = useState<{ picks: Partial<Picks>; at: string } | null>(null);
+  const [edited, setEdited] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const returning = saved !== null;
   const picked = teams.filter((team) => picks[team.abbr]).length;
   const complete = picked === teams.length;
+  const changed = teams.filter((team) => picks[team.abbr] !== saved?.picks[team.abbr]).length;
 
   async function lookup(event: React.FormEvent) {
     event.preventDefault();
@@ -76,10 +85,10 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
       if (body.status === "found") {
         setName(body.name);
         setPicks({ ...body.picks, ...readDraft(draftKey, body.name) });
-        setReturning(true);
+        setSaved({ picks: body.picks, at: body.updatedAt });
       } else {
         setPicks(readDraft(draftKey, name));
-        setReturning(false);
+        setSaved(null);
       }
       setStep("pick");
       window.scrollTo({ top: 0 });
@@ -99,6 +108,7 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
   }
 
   async function save() {
+    const wasReturning = returning;
     setBusy(true);
     setError(null);
     try {
@@ -115,6 +125,8 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
       if (!res.ok) return setError(body.error ?? "Something went wrong. Try again.");
 
       writeDraft(draftKey, name, null);
+      setSaved({ picks, at: new Date().toISOString() });
+      setEdited(wasReturning);
       setStep("done");
       window.scrollTo({ top: 0 });
       router.refresh();
@@ -129,10 +141,20 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
     return (
       <div className="mx-auto max-w-md">
         <p className="text-sm font-medium text-accent">{seasonLabel} season · Locks {lockLabel}</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Make your picks</h1>
-        <p className="mt-2 text-muted">Enter your name and a PIN. Use the same ones to come back and change your picks before tip-off.</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Make or edit your picks</h1>
 
-        <form onSubmit={lookup} className="mt-8 space-y-5" noValidate>
+        <div className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
+          <div className="rounded-xl border border-line bg-surface px-4 py-3">
+            <p className="font-medium">New this season?</p>
+            <p className="mt-0.5 text-muted">Enter your name and make up a PIN.</p>
+          </div>
+          <div className="rounded-xl border border-line bg-surface px-4 py-3">
+            <p className="font-medium">Already entered?</p>
+            <p className="mt-0.5 text-muted">Use the same name and PIN to change your picks.</p>
+          </div>
+        </div>
+
+        <form onSubmit={lookup} className="mt-6 space-y-5" noValidate>
           <div>
             <label htmlFor="name" className="text-sm font-medium">
               Your name
@@ -159,10 +181,13 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
               type="password"
               inputMode="numeric"
               autoComplete="off"
+              autoFocus={Boolean(initialName)}
               placeholder="4–8 digits"
               className="mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 tracking-widest outline-none transition focus:border-ink/40 focus:ring-4 focus:ring-ink/5"
             />
-            <p className="mt-1.5 text-xs text-muted">First time this season? Make one up. It keeps anyone else from editing your picks.</p>
+            <p className="mt-1.5 text-xs text-muted">
+              Remember it: it&apos;s the only way to edit your picks, and it keeps anyone else from changing them.
+            </p>
           </div>
 
           {error && <Notice tone="warning">{error}</Notice>}
@@ -174,6 +199,7 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
           >
             {busy ? "Checking…" : "Continue"}
           </button>
+          <p className="text-center text-xs text-muted">You can edit your picks as often as you like until {lockLabel}.</p>
         </form>
       </div>
     );
@@ -187,24 +213,30 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
           ✓
         </span>
         <h1 className="mt-5 text-3xl font-semibold tracking-tight">
-          {returning ? "Picks updated" : `You're in, ${name.split(" ")[0]}`}
+          {edited ? "Changes saved" : `You're in, ${firstName(name)}`}
         </h1>
         <p className="mt-3 text-muted">
-          {overs} overs, {teams.length - overs} unders. You can change them until {lockLabel}. Just come back with your name and PIN.
+          {overs} overs, {teams.length - overs} unders.
         </p>
+
+        <div className="mt-6 rounded-2xl border border-line bg-surface px-5 py-4 text-left text-sm">
+          <p className="font-medium">Want to change something later?</p>
+          <p className="mt-1 text-muted">
+            Come back to this site any time before <span className="text-ink">{lockLabel}</span> and sign in as{" "}
+            <span className="font-medium text-ink">{name}</span> with your PIN.
+          </p>
+        </div>
+
         <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link href="/" className="rounded-full bg-ink px-5 py-2.5 font-medium text-bg transition-opacity hover:opacity-90">
             Back to the league
           </Link>
           <button
             type="button"
-            onClick={() => {
-              setReturning(true);
-              setStep("pick");
-            }}
-            className="rounded-full px-5 py-2.5 font-medium text-muted transition-colors hover:text-ink"
+            onClick={() => setStep("pick")}
+            className="rounded-full border border-line px-5 py-2.5 font-medium transition-colors hover:border-ink/30"
           >
-            Edit picks
+            Edit picks now
           </button>
         </div>
       </div>
@@ -216,7 +248,9 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-accent">{seasonLabel} season · Locks {lockLabel}</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{name.split(" ")[0]}&apos;s picks</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            {returning ? `Editing ${firstName(name)}'s picks` : `${firstName(name)}'s picks`}
+          </h1>
         </div>
         <button
           type="button"
@@ -226,16 +260,23 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
           }}
           className="text-sm text-muted underline-offset-4 hover:text-ink hover:underline"
         >
-          Not {name.split(" ")[0]}?
+          Not {firstName(name)}?
         </button>
       </div>
       <p className="mt-2 text-muted">Will each team win more or fewer games than its line?</p>
 
-      {returning && (
-        <div className="mt-5">
-          <Notice>Loaded your saved picks. Change anything you like, then save again.</Notice>
-        </div>
-      )}
+      <div className="mt-5">
+        <Notice>
+          {returning ? (
+            <>
+              These are your saved picks from <span className="font-medium">{savedLabel(saved.at)}</span> ET. Change anything, then tap{" "}
+              <span className="font-medium">Save changes</span>. You can keep editing until {lockLabel}.
+            </>
+          ) : (
+            <>Pick all 30, then save. You can come back and change them until {lockLabel}.</>
+          )}
+        </Notice>
+      </div>
 
       <div className="mt-8 space-y-8">
         {CONFERENCES.map((conference) => (
@@ -261,8 +302,20 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
         <div className="flex items-center gap-4">
           <div className="min-w-0 flex-1">
             <p className="text-sm tabular-nums">
-              <span className="font-semibold">{picked}</span>
-              <span className="text-muted"> of {teams.length} picked</span>
+              {!complete ? (
+                <>
+                  <span className="font-semibold">{picked}</span>
+                  <span className="text-muted"> of {teams.length} picked</span>
+                </>
+              ) : returning && changed === 0 ? (
+                <span className="text-hit">✓ All saved</span>
+              ) : returning ? (
+                <span className="font-medium text-accent">
+                  {changed} unsaved {changed === 1 ? "change" : "changes"}
+                </span>
+              ) : (
+                <span className="font-semibold">All {teams.length} picked</span>
+              )}
             </p>
             <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-subtle" aria-hidden>
               <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${(picked / teams.length) * 100}%` }} />
@@ -271,10 +324,18 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
           <button
             type="button"
             onClick={save}
-            disabled={!complete || busy}
+            disabled={!complete || busy || (returning && changed === 0)}
             className="shrink-0 rounded-full bg-accent px-5 py-2.5 font-medium text-accent-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:bg-subtle disabled:text-muted"
           >
-            {busy ? "Saving…" : complete ? "Save picks" : `${teams.length - picked} to go`}
+            {busy
+              ? "Saving…"
+              : !complete
+                ? `${teams.length - picked} to go`
+                : returning
+                  ? changed === 0
+                    ? "Saved"
+                    : "Save changes"
+                  : "Save picks"}
           </button>
         </div>
       </div>

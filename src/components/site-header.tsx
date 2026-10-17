@@ -50,7 +50,8 @@ export function SiteHeader({ seasons, lockAt }: Props) {
             href="/picks"
             className="ml-auto rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-bg transition-opacity hover:opacity-85"
           >
-            Make picks
+            <span className="sm:hidden">Your picks</span>
+            <span className="hidden sm:inline">Make or edit picks</span>
           </Link>
         )}
       </div>

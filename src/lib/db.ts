@@ -53,14 +53,14 @@ async function pinMatches(pin: string, stored: string) {
 
 export type LookupResult =
   | { status: "new" }
-  | { status: "found"; name: string; picks: Picks }
+  | { status: "found"; name: string; picks: Picks; updatedAt: string }
   | { status: "wrong-pin" };
 
 export async function lookupEntry(season: string, name: string, pin: string): Promise<LookupResult> {
   const row = await findEntry(season, name);
   if (!row) return { status: "new" };
   if (!(await pinMatches(pin, row.pin_hash))) return { status: "wrong-pin" };
-  return { status: "found", name: row.name, picks: row.picks };
+  return { status: "found", name: row.name, picks: row.picks, updatedAt: new Date(row.updated_at).toISOString() };
 }
 
 /** Creates the entry, or updates it when the PIN matches. */

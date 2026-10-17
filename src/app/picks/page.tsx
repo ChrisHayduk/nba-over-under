@@ -7,9 +7,9 @@ import { formatEastern } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Make your picks · NBA Over/Under League" };
+export const metadata: Metadata = { title: "Make or edit your picks · NBA Over/Under League" };
 
-export default async function PicksPage() {
+export default async function PicksPage({ searchParams }: PageProps<"/picks">) {
   const season = CURRENT_SEASON;
 
   if (isLocked(season)) {
@@ -26,12 +26,14 @@ export default async function PicksPage() {
   }
 
   const lastSeason = SEASONS.find((other): other is ArchivedSeason => other.status === "final");
+  const { name } = await searchParams;
 
   return (
     <PickForm
       seasonLabel={seasonLabel(season)}
       lockLabel={`${formatEastern(season.lockAt, { weekday: "short", month: "short", day: "numeric" })} at ${formatEastern(season.lockAt, { hour: "numeric", minute: "2-digit" })} ET`}
       draftKey={`ou-draft-${season.id}`}
+      initialName={typeof name === "string" ? name.slice(0, 40) : ""}
       teams={TEAMS.map((team) => ({
         ...team,
         line: season.lines[team.abbr],

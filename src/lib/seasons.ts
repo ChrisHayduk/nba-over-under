@@ -47,13 +47,16 @@ export const getSeason = (id: string) => SEASONS.find((season) => season.id === 
 export const seasonLabel = (season: Season) => season.id.replace("-", "–");
 
 /**
- * Prize money by place. Live seasons split entryFee × entrants by payoutShares,
- * rounding the lower places to the nearest $5 and giving 1st the remainder.
+ * Prize money by place. Live seasons split entryFee × entrants by payoutShares
+ * (only as many places as there are players), rounding the lower places to the
+ * nearest $5 and giving 1st the remainder.
  */
 export function seasonPayouts(season: Season, entrants: number): number[] {
   if (season.status === "final") return season.payouts;
   const pot = season.entryFee * entrants;
-  const lower = season.payoutShares.slice(1).map((share) => Math.round((pot * share) / 5) * 5);
+  const shares = season.payoutShares.slice(0, Math.max(1, entrants));
+  const total = shares.reduce((sum, share) => sum + share, 0);
+  const lower = shares.slice(1).map((share) => Math.round((pot * share) / total / 5) * 5);
   return [pot - lower.reduce((sum, value) => sum + value, 0), ...lower];
 }
 

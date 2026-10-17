@@ -43,12 +43,33 @@ export function PicksOpen({ season, entries, lastSeason }: Props) {
             >
               Make your picks
             </Link>
-            <Link href="#lines" className="rounded-full px-4 py-3 font-medium text-muted transition-colors hover:text-ink">
-              See the lines ↓
+            <Link
+              href="/picks"
+              className="rounded-full border border-line bg-surface px-6 py-3 font-medium transition-colors hover:border-ink/30"
+            >
+              Edit your picks
             </Link>
           </div>
 
-          <div className="mt-10">
+          <ol className="mt-10 grid gap-3 sm:grid-cols-3">
+            {[
+              { title: "Sign in", body: "Enter your name and a PIN. New this season? Make up any PIN." },
+              { title: "Pick all 30", body: "Over or under on every team, then save." },
+              { title: "Change your mind", body: `Same name and PIN to edit, as often as you like until ${lockDay}.` }
+            ].map((step, index) => (
+              <li key={step.title} className="rounded-xl border border-line bg-surface px-4 py-3">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-subtle text-[0.7rem] tabular-nums text-muted">
+                    {index + 1}
+                  </span>
+                  {step.title}
+                </p>
+                <p className="mt-1 text-xs text-muted">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-8">
             <p className="mb-2 text-xs text-muted">Picks lock in</p>
             <Countdown target={season.lockAt} />
           </div>
@@ -63,15 +84,32 @@ export function PicksOpen({ season, entries, lastSeason }: Props) {
             <ul className="divide-y divide-line">
               {entries.map((entry) => (
                 <li key={entry.name} className="flex items-center gap-3 px-5 py-2.5 text-sm">
-                  <span className="grid h-5 w-5 place-items-center rounded-full bg-hit-soft text-[0.65rem] text-hit" aria-hidden>
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-hit-soft text-[0.65rem] text-hit" aria-hidden>
                     ✓
                   </span>
-                  {entry.name}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate">{entry.name}</p>
+                    <p className="text-xs text-muted">
+                      Saved {formatEastern(entry.updatedAt, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/picks?name=${encodeURIComponent(entry.name)}`}
+                    aria-label={`Edit ${entry.name}'s picks`}
+                    className="rounded-full px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:bg-subtle hover:text-ink"
+                  >
+                    Edit
+                  </Link>
                 </li>
               ))}
             </ul>
           ) : (
             <p className="px-5 py-6 text-sm text-muted">Nobody&apos;s in yet. Be the first.</p>
+          )}
+          {entries.length > 0 && (
+            <p className="border-t border-line px-5 py-3 text-xs text-muted">
+              Picks stay hidden until tip-off. Tap Edit and enter your PIN to change yours.
+            </p>
           )}
           <div className="border-t border-line px-5 py-4">
             <div className="flex items-baseline justify-between text-xs text-muted">
