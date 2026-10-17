@@ -8,6 +8,7 @@ export const SEASON_2025_26: ArchivedSeason = {
   id: "2025-26",
   endYear: 2026,
   status: "final",
+  entryFee: 20,
   payouts: [150, 70, 20],
   lines: {
     ATL: 46.5,

@@ -9,6 +9,8 @@ type Props = {
   season: Season;
   standings: Standing[];
   teams: TeamStatus[];
+  /** Prize money for 1st, 2nd, 3rd... */
+  payouts: number[];
   /** When the records were fetched (live seasons only). */
   updatedAt?: string;
   recordsError?: boolean;
@@ -17,11 +19,11 @@ type Props = {
 const TOTAL_GAMES = (30 * GAMES_PER_SEASON) / 2;
 
 /** Leaderboard + team board for a season whose picks are locked. */
-export function SeasonResults({ season, standings, teams, updatedAt, recordsError }: Props) {
+export function SeasonResults({ season, standings, teams, payouts, updatedAt, recordsError }: Props) {
   const final = season.status === "final";
   const leader = standings[0];
   const gamesPlayed = teams.reduce((sum, status) => sum + status.gamesPlayed, 0) / 2;
-  const pot = season.payouts.reduce((sum, value) => sum + value, 0);
+  const pot = payouts.reduce((sum, value) => sum + value, 0);
 
   return (
     <div className="space-y-12">
@@ -55,7 +57,7 @@ export function SeasonResults({ season, standings, teams, updatedAt, recordsErro
             value={Math.round(gamesPlayed)}
             detail={`of ${TOTAL_GAMES}`}
           />
-          <Stat label="Pot" value={formatCurrency(pot)} detail={season.payouts.map((p) => formatCurrency(p)).join(" · ")} />
+          <Stat label="Pot" value={formatCurrency(pot)} detail={payouts.map((p) => formatCurrency(p)).join(" · ")} />
           <Stat
             label={final ? "Season" : "Updated"}
             value={final ? "Final" : updatedAt ? formatEastern(updatedAt, { hour: "numeric", minute: "2-digit" }) : "—"}

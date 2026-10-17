@@ -4,7 +4,7 @@ import { TeamLogo } from "@/components/team-logo";
 import { SectionHeading } from "@/components/ui";
 import { TEAMS, type Conference } from "@/data/teams";
 import type { StoredEntry } from "@/lib/db";
-import { type LiveSeason, type ArchivedSeason, seasonLabel } from "@/lib/seasons";
+import { type LiveSeason, type ArchivedSeason, seasonLabel, seasonPayouts } from "@/lib/seasons";
 import { formatCurrency, formatEastern, ordinal } from "@/lib/utils";
 
 type Props = {
@@ -17,6 +17,8 @@ type Props = {
 export function PicksOpen({ season, entries, lastSeason }: Props) {
   const lockDay = formatEastern(season.lockAt, { weekday: "long", month: "short", day: "numeric" });
   const lockTime = formatEastern(season.lockAt, { hour: "numeric", minute: "2-digit" });
+  const payouts = seasonPayouts(season, entries.length);
+  const pot = season.entryFee * entries.length;
 
   return (
     <div className="space-y-14">
@@ -72,10 +74,17 @@ export function PicksOpen({ season, entries, lastSeason }: Props) {
             <p className="px-5 py-6 text-sm text-muted">Nobody&apos;s in yet. Be the first.</p>
           )}
           <div className="border-t border-line px-5 py-4">
-            <p className="text-xs text-muted">Prizes</p>
-            <p className="mt-1 text-sm tabular-nums">
-              {season.payouts.map((amount, index) => `${ordinal(index + 1)} ${formatCurrency(amount)}`).join(" · ")}
-            </p>
+            <div className="flex items-baseline justify-between text-xs text-muted">
+              <span>Pot so far</span>
+              <span>{formatCurrency(season.entryFee)} per entry</span>
+            </div>
+            <p className="mt-1 text-xl font-semibold tabular-nums tracking-tight">{formatCurrency(pot)}</p>
+            {entries.length > 0 && (
+              <p className="mt-1 text-xs tabular-nums text-muted">
+                If picks locked now:{" "}
+                {payouts.map((amount, index) => `${ordinal(index + 1)} ${formatCurrency(amount)}`).join(" · ")}
+              </p>
+            )}
           </div>
         </aside>
       </section>

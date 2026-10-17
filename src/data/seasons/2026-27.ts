@@ -8,7 +8,9 @@ export const SEASON_2026_27: LiveSeason = {
   endYear: 2027,
   status: "live",
   lockAt: "2026-10-20T19:00:00Z",
-  payouts: [150, 70, 20],
+  entryFee: 20,
+  // Same split as 2025-26, when 12 players made a $240 pot: $150 / $70 / $20.
+  payoutShares: [150 / 240, 70 / 240, 20 / 240],
   lines: {
     ATL: 43.5,
     BKN: 25.5,

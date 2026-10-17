@@ -11,8 +11,8 @@ type SeasonBase = {
   id: string;
   /** ESPN identifies seasons by the calendar year they end in. */
   endYear: number;
-  /** Prize money for 1st, 2nd, 3rd... */
-  payouts: number[];
+  /** Buy-in per player; the pot is entryFee × players. */
+  entryFee: number;
   /** FanDuel win total per team abbreviation. */
   lines: Record<string, number>;
 };
@@ -22,11 +22,15 @@ export type LiveSeason = SeasonBase & {
   status: "live";
   /** ISO timestamp when picks lock and become visible to everyone. */
   lockAt: string;
+  /** Fraction of the pot paid to 1st, 2nd, 3rd... */
+  payoutShares: number[];
 };
 
 /** A finished season frozen into the repo. */
 export type ArchivedSeason = SeasonBase & {
   status: "final";
+  /** Prize money actually paid to 1st, 2nd, 3rd... */
+  payouts: number[];
   finalRecords: Record<string, [wins: number, losses: number]>;
   entries: { name: string; picks: Picks }[];
 };
@@ -41,5 +45,16 @@ export const CURRENT_SEASON = SEASON_2026_27;
 export const getSeason = (id: string) => SEASONS.find((season) => season.id === id);
 
 export const seasonLabel = (season: Season) => season.id.replace("-", "–");
+
+/**
+ * Prize money by place. Live seasons split entryFee × entrants by payoutShares,
+ * rounding the lower places to the nearest $5 and giving 1st the remainder.
+ */
+export function seasonPayouts(season: Season, entrants: number): number[] {
+  if (season.status === "final") return season.payouts;
+  const pot = season.entryFee * entrants;
+  const lower = season.payoutShares.slice(1).map((share) => Math.round((pot * share) / 5) * 5);
+  return [pot - lower.reduce((sum, value) => sum + value, 0), ...lower];
+}
 
 export const isLocked = (season: LiveSeason, now = Date.now()) => now >= Date.parse(season.lockAt);
