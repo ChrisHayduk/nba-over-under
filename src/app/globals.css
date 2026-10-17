@@ -2,19 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Color tokens as RGB triplets so Tailwind opacity modifiers work (e.g. bg-ink/5). */
 :root {
-  --background: 12 12 26;
-  --foreground: 248 250 252;
+  --bg: 250 250 249;
+  --surface: 255 255 255;
+  --subtle: 244 244 242;
+  --line: 229 229 226;
+  --ink: 23 23 23;
+  --muted: 112 112 108;
+  --accent: 194 65 12;
+  --accent-ink: 255 255 255;
+  --accent-soft: 255 237 222;
+  --hit: 21 128 61;
+  --hit-soft: 222 247 230;
+  --miss: 190 18 60;
+  --miss-soft: 255 229 233;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: 11 11 11;
+    --surface: 22 22 22;
+    --subtle: 31 31 31;
+    --line: 44 44 44;
+    --ink: 244 244 242;
+    --muted: 160 160 156;
+    --accent: 251 146 60;
+    --accent-ink: 23 23 23;
+    --accent-soft: 60 26 8;
+    --hit: 74 222 128;
+    --hit-soft: 12 48 26;
+    --miss: 251 113 133;
+    --miss-soft: 64 12 26;
+    color-scheme: dark;
+  }
 }
 
 body {
   min-height: 100vh;
-  background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.18), transparent 45%),
-    radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.15), transparent 35%),
-    rgb(var(--background));
-  color: rgb(var(--foreground));
+  background: rgb(var(--bg));
+  color: rgb(var(--ink));
+  font-feature-settings: "ss01", "cv11";
 }
 
-* {
-  box-sizing: border-box;
+summary::-webkit-details-marker {
+  display: none;
 }

@@ -2,8 +2,11 @@ node_modules
 .next
 out
 .env
+.env*.local
+.vercel
 .DS_Store
 npm-debug.log*
 *.xlsx
 *.csv
 *.txt
+.env*
