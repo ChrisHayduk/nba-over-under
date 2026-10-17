@@ -17,7 +17,6 @@ type Props = {
   /** localStorage key for unsaved picks. */
   draftKey: string;
   teams: PickTeam[];
-  knownNames: string[];
 };
 
 type Step = "who" | "pick" | "done";
@@ -45,7 +44,7 @@ function writeDraft(key: string, name: string, picks: Partial<Picks> | null) {
   }
 }
 
-export function PickForm({ seasonLabel, lockLabel, draftKey, teams, knownNames }: Props) {
+export function PickForm({ seasonLabel, lockLabel, draftKey, teams }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("who");
   const [name, setName] = useState("");
@@ -147,25 +146,6 @@ export function PickForm({ seasonLabel, lockLabel, draftKey, teams, knownNames }
               placeholder="First and last name"
               className="mt-1.5 w-full rounded-xl border border-line bg-surface px-4 py-3 outline-none transition focus:border-ink/40 focus:ring-4 focus:ring-ink/5"
             />
-            {knownNames.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {knownNames.map((known) => (
-                  <button
-                    key={known}
-                    type="button"
-                    onClick={() => setName(known)}
-                    className={cn(
-                      "rounded-full border px-2.5 py-1 text-xs transition-colors",
-                      draftName(known) === draftName(name)
-                        ? "border-ink bg-ink text-bg"
-                        : "border-line text-muted hover:border-ink/30 hover:text-ink"
-                    )}
-                  >
-                    {known}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           <div>

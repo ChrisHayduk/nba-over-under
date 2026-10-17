@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PickForm } from "@/components/pick-form";
 import { TEAMS } from "@/data/teams";
-import { listEntries } from "@/lib/db";
 import { CURRENT_SEASON, SEASONS, isLocked, seasonLabel, type ArchivedSeason } from "@/lib/seasons";
 import { formatEastern } from "@/lib/utils";
 
@@ -27,10 +26,6 @@ export default async function PicksPage() {
   }
 
   const lastSeason = SEASONS.find((other): other is ArchivedSeason => other.status === "final");
-  const entries = await listEntries(season.id);
-  const knownNames = [...new Set([...entries.map((entry) => entry.name), ...(lastSeason?.entries.map((entry) => entry.name) ?? [])])].sort(
-    (a, b) => a.localeCompare(b)
-  );
 
   return (
     <PickForm
@@ -42,7 +37,6 @@ export default async function PicksPage() {
         line: season.lines[team.abbr],
         lastWins: lastSeason?.finalRecords[team.abbr]?.[0] ?? null
       }))}
-      knownNames={knownNames}
     />
   );
 }
